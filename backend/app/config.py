@@ -7,11 +7,11 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Inventory Management Agent"
     
     # MongoDB
-    MONGO_URI: str
-    MONGO_DB_NAME: str
+    MONGO_URI: str = "mongodb://localhost:27017"
+    MONGO_DB_NAME: str = "inventory_db"
     
     # JWT
-    SECRET_KEY: str
+    SECRET_KEY: str = "nexus_ai_inventory_default_secret_key_2026_change_me"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
