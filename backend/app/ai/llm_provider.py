@@ -29,6 +29,15 @@ class GeminiProvider(LLMProvider):
             temperature=kwargs.get("temperature", 0)
         )
 
+class GroqProvider(LLMProvider):
+    def get_llm(self, **kwargs) -> Any:
+        from langchain_groq import ChatGroq
+        return ChatGroq(
+            api_key=settings.GROQ_API_KEY,
+            model=kwargs.get("model", "llama-3.3-70b-versatile"),
+            temperature=kwargs.get("temperature", 0)
+        )
+
 def get_llm_provider(provider_name: str = None) -> Any:
     name = provider_name or settings.LLM_PROVIDER
     
@@ -40,5 +49,9 @@ def get_llm_provider(provider_name: str = None) -> Any:
         if not settings.GEMINI_API_KEY or settings.GEMINI_API_KEY == "":
             raise ValueError("GEMINI_API_KEY is not configured")
         return GeminiProvider().get_llm()
+    elif name == "groq":
+        if not settings.GROQ_API_KEY or settings.GROQ_API_KEY == "":
+            raise ValueError("GROQ_API_KEY is not configured")
+        return GroqProvider().get_llm()
     else:
         raise ValueError(f"Unsupported LLM provider: {name}")
