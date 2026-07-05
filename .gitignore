@@ -1,0 +1,45 @@
+# Python virtual environments
+.venv/
+.venv-1/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment variables (sensitive)
+.env
+backend/.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Logs
+*.log
+server.log
+
+# ChromaDB data (large vector DB files)
+backend/chroma_data/
+
+# Sentence transformer model cache (very large)
+sentence_transformers/
+.cache/
+
+# IDE / OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Test scripts
+test_*.py
+
+# SQLite DB (optional - comment out if you want to include seed data)
+# database.db
