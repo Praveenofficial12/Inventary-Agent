@@ -26,10 +26,8 @@ const Products: React.FC = () => {
 
   const handleStockUpdate = async (id: string, delta: number) => {
     try {
-      await apiClient.post(`/products/${id}/stock`, {
-        delta,
-        change_type: delta > 0 ? 'restock' : 'sale'
-      });
+      const changeType = delta > 0 ? 'restock' : 'sale';
+      await apiClient.post(`/products/${id}/stock?delta=${delta}&change_type=${changeType}`);
       fetchProducts();
     } catch {
       alert('Failed to update stock');
