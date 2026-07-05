@@ -56,7 +56,46 @@ app.include_router(reports.router)
 async def health_check():
     return {"status": "ok", "message": "Backend is running"}
 
-# Root route
-@app.get("/")
-async def root():
-    return {"message": "Welcome to AI Inventory Management API"}
+# Serve Frontend SPA static files from single-service deploy
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+
+# In Docker: __file__ is /app/app/main.py so dist is at /app/frontend/dist
+# In local dev: dist is at ../../../frontend/dist relative to this file
+_here = os.path.dirname(os.path.abspath(__file__))
+_candidates = [
+    os.path.join(_here, "..", "frontend", "dist"),                      # Docker layout: /app/frontend/dist
+    os.path.join(_here, "..", "..", "..", "frontend", "dist"),           # local dev layout
+]
+frontend_dist = next((p for p in _candidates if os.path.isdir(p)), None)
+
+if frontend_dist:
+    frontend_dist = os.path.realpath(frontend_dist)
+    assets_dir = os.path.join(frontend_dist, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/{catchall:path}")
+    async def serve_frontend(catchall: str):
+        api_prefixes = ("auth/", "products/", "categories/", "suppliers/", "inventory/",
+                        "upload/", "chat/", "agents/", "reports/", "health", "docs", "openapi.json")
+        if any(catchall.startswith(p) for p in api_prefixes):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="API route not found")
+
+        file_path = os.path.join(frontend_dist, catchall)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+
+        index_path = os.path.join(frontend_dist, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+
+        return {"message": "Welcome to AI Inventory Management API"}
+else:
+    @app.get("/")
+    async def root():
+        return {"message": "Welcome to AI Inventory Management API"}
+
+

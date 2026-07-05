@@ -1,13 +1,13 @@
 services:
-  # 1. FastAPI Backend Docker Service
+  # Single Docker service: Serves BOTH FastAPI backend and React frontend
   - type: web
-    name: nexus-ai-backend
+    name: nexus-ai-inventory
     env: docker
     dockerfilePath: Dockerfile
     dockerContext: .
     envVars:
       - key: MONGO_URI
-        value: mongodb://localhost:27017 # Local mock mongo is used, but required placeholder
+        value: mongodb://localhost:27017
       - key: MONGO_DB_NAME
         value: inventory_db
       - key: SECRET_KEY
@@ -17,20 +17,6 @@ services:
       - key: LLM_PROVIDER
         value: groq
       - key: GROQ_API_KEY
-        sync: false # User enters this securely in the Render Dashboard
-
-  # 2. React Vite Frontend Static Site
-  - type: web
-    name: nexus-ai-frontend
-    env: static
-    buildCommand: cd frontend && npm install && npm run build
-    publishPath: frontend/dist
-    headers:
-      - path: /*
-        headers:
-          - key: Cache-Control
-            value: no-cache
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+        sync: false   # Set this securely in the Render Dashboard env vars
+      - key: CORS_ORIGINS
+        value: "*"

@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+// In production (single Docker service), React is served by FastAPI itself,
+// so API calls go to the same origin with no prefix.
+// In local dev, Vite proxies /api → http://localhost:8000 (see vite.config.ts).
+const isProd = import.meta.env.PROD;
+const baseURL = import.meta.env.VITE_API_URL || (isProd ? '/' : '/api');
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

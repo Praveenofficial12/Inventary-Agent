@@ -1,3 +1,15 @@
+# ── Stage 1: Build React Frontend ──────────────────────────────────────────
+FROM node:20-slim AS frontend-build
+
+WORKDIR /frontend
+
+COPY frontend/package*.json ./
+RUN npm install
+
+COPY frontend/ .
+RUN npm run build
+
+# ── Stage 2: Python FastAPI Backend + Compiled Frontend ────────────────────
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -7,12 +19,16 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Python dependencies
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all backend source code to the container's working directory
+# Copy backend source code
 COPY backend/ .
 
-EXPOSE 8000
+# Copy compiled React frontend into a path the backend can serve
+COPY --from=frontend-build /frontend/dist /app/frontend/dist
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 10000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]
