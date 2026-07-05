@@ -10,16 +10,43 @@ class RAGPipeline:
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
 
     def _load_embeddings(self):
+        # 1. Try Google Gemini API embeddings (lightweight, zero-memory footprint)
+        if hasattr(settings, "GEMINI_API_KEY") and settings.GEMINI_API_KEY and settings.GEMINI_API_KEY not in ("", "placeholder"):
+            try:
+                from langchain_google_genai import GoogleGenAIEmbeddings
+                logger.info("Using Google GenAI Embeddings for RAG")
+                return GoogleGenAIEmbeddings(
+                    google_api_key=settings.GEMINI_API_KEY,
+                    model="models/text-embedding-004"
+                )
+            except Exception as e:
+                logger.warning(f"Failed to load Google GenAI Embeddings: {e}")
+
+        # 2. Try OpenAI API embeddings
+        if hasattr(settings, "OPENAI_API_KEY") and settings.OPENAI_API_KEY and settings.OPENAI_API_KEY not in ("", "sk-placeholder"):
+            try:
+                from langchain_openai import OpenAIEmbeddings
+                logger.info("Using OpenAI Embeddings for RAG")
+                return OpenAIEmbeddings(
+                    api_key=settings.OPENAI_API_KEY,
+                    model="text-embedding-3-small"
+                )
+            except Exception as e:
+                logger.warning(f"Failed to load OpenAI Embeddings: {e}")
+
+        # 3. Local HuggingFace fallback
         try:
             from langchain_huggingface import HuggingFaceEmbeddings
+            logger.info("Using HuggingFace local Embeddings for RAG")
             return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
         except ImportError:
             pass
         try:
             from langchain_community.embeddings import HuggingFaceEmbeddings
+            logger.info("Using HuggingFace local Embeddings (community) for RAG")
             return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
         except Exception as e:
-            logger.warning(f"HuggingFace embeddings unavailable: {e}. RAG disabled.")
+            logger.warning(f"Local embeddings unavailable: {e}. RAG disabled.")
             return None
 
     def _get_vectorstore(self, collection_name="company_policies"):
