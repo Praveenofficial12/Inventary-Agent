@@ -1,10 +1,10 @@
 services:
-  # 1. FastAPI Backend Web Service
+  # 1. FastAPI Backend Docker Service
   - type: web
     name: nexus-ai-backend
-    env: python
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
     envVars:
       - key: MONGO_URI
         value: mongodb://localhost:27017 # Local mock mongo is used, but required placeholder
